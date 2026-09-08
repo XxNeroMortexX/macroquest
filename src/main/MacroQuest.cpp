@@ -863,14 +863,28 @@ void MacroQuest::Initialize()
 	AddInternalModule(GetPostOfficeModule());
 	AddInternalModule(GetDisplayHookModule());
 #if IS_EMU_CLIENT
-	AddInternalModule(GetEmuExtensionsModule());
+  AddInternalModule(GetEmuExtensionsModule());
 #endif
-	InitializeMQ2AutoInventory();
-	InitializeMQ2KeyBinds();
-	InitializePlugins();
-	InitializeCachedBuffs();
 
-	g_hLoadComplete.SetEvent();
+  LOG_DEBUG("[INIT TRACE] Before InitializeMQ2AutoInventory");
+  InitializeMQ2AutoInventory();
+  LOG_DEBUG("[INIT TRACE] After InitializeMQ2AutoInventory");
+
+  LOG_DEBUG("[INIT TRACE] Before InitializeMQ2KeyBinds");
+  InitializeMQ2KeyBinds();
+  LOG_DEBUG("[INIT TRACE] After InitializeMQ2KeyBinds");
+
+  LOG_DEBUG("[INIT TRACE] Before InitializePlugins");
+  InitializePlugins();
+  LOG_DEBUG("[INIT TRACE] After InitializePlugins");
+
+  LOG_DEBUG("[INIT TRACE] Before InitializeCachedBuffs");
+  InitializeCachedBuffs();
+  LOG_DEBUG("[INIT TRACE] After InitializeCachedBuffs");
+
+  LOG_DEBUG("[INIT TRACE] Before LoadComplete SetEvent");
+  g_hLoadComplete.SetEvent();
+  LOG_DEBUG("[INIT TRACE] After LoadComplete SetEvent");
 }
 
 void MacroQuest::Shutdown()

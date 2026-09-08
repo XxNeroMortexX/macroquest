@@ -445,23 +445,38 @@ static void EmuExtensions_SettingsPanel()
 
 static void EmuExtensions_Initialize()
 {
+  DebugSpewAlways("[EMU TRACE] Initialize BEGIN");
+
 #if EMU_CONSTANT_AFFINITY_ENABLED
-	EmuInitCpuAffinity();
+  DebugSpewAlways("[EMU TRACE] Before EmuInitCpuAffinity");
+  EmuInitCpuAffinity();
+  DebugSpewAlways("[EMU TRACE] After EmuInitCpuAffinity");
 #endif
 
 #if EMU_SPELL_LINKS_ENABLED
-	EzDetour(__ConvertItemTags, &ConvertItemTags_Detour, &ConvertItemTags_Trampoline);
-	EzDetour(CChatWindow__WndNotification, &CChatWindowHook::WndNotification_Detour, &CChatWindowHook::WndNotification_Trampoline);
+  DebugSpewAlways("[EMU TRACE] Before spell link detours");
+  EzDetour(__ConvertItemTags, &ConvertItemTags_Detour, &ConvertItemTags_Trampoline);
+  EzDetour(CChatWindow__WndNotification, &CChatWindowHook::WndNotification_Detour, &CChatWindowHook::WndNotification_Trampoline);
+  DebugSpewAlways("[EMU TRACE] After spell link detours");
 #endif
+
 #if EMU_CEFFECT_CRASH_WORKAROUND
-	EmuCheckEffectsInitialize();
+  DebugSpewAlways("[EMU TRACE] Before EmuCheckEffectsInitialize");
+  EmuCheckEffectsInitialize();
+  DebugSpewAlways("[EMU TRACE] After EmuCheckEffectsInitialize");
 #endif
 
 #if EMU_FIX_EXCEPTION_HANDLER_ENABLED
-	AddCommand("/printsehchain", Command_PrintSEHChain);
+  DebugSpewAlways("[EMU TRACE] Before AddCommand printsehchain");
+  AddCommand("/printsehchain", Command_PrintSEHChain);
+  DebugSpewAlways("[EMU TRACE] After AddCommand printsehchain");
 #endif
 
-	AddSettingsPanel("Emu Extensions", EmuExtensions_SettingsPanel);
+  DebugSpewAlways("[EMU TRACE] Before AddSettingsPanel");
+  AddSettingsPanel("Emu Extensions", EmuExtensions_SettingsPanel);
+  DebugSpewAlways("[EMU TRACE] After AddSettingsPanel");
+
+  DebugSpewAlways("[EMU TRACE] Initialize END");
 }
 
 static void EmuExtensions_Shutdown()

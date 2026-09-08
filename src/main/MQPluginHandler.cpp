@@ -119,17 +119,24 @@ void AddStaticInitializationModule(ModuleInitializer* module)
 
 void AddInternalModule(MQModule* module, bool manualUnload /*=false*/)
 {
-	LOG_DEBUG("Initializing module: {0}", module->name);
+  LOG_DEBUG("Initializing module: {0}", module->name);
 
-	gInternalModules.push_back(module);
+  LOG_DEBUG("[MODULE TRACE] Before push_back: {0}", module->name);
+  gInternalModules.push_back(module);
+  LOG_DEBUG("[MODULE TRACE] After push_back: {0}", module->name);
 
-	if (module->Initialize)
-		module->Initialize();
-	if (module->SetGameState)
-		module->SetGameState(GetGameState());
+  if (module->Initialize)
+  {
+    LOG_DEBUG("[MODULE TRACE] Before Initialize call: {0}", module->name);
+    module->Initialize();
+    LOG_DEBUG("[MODULE TRACE] After Initialize call: {0}", module->name);
+  }
 
-	module->loaded = true;
-	module->manualUnload = manualUnload;
+  if (module->SetGameState)
+    module->SetGameState(GetGameState());
+
+  module->loaded = true;
+  module->manualUnload = manualUnload;
 }
 
 void RemoveInternalModule(MQModule* module)
@@ -521,7 +528,9 @@ int LoadPlugin(std::string_view pluginName, bool save)
 
 	ScopedModuleTracker moduleTracker;
 
+  LOG_DEBUG("[LOAD TRACE] Before LoadPluginModule: {0}", pluginName);
 	auto [hModule, pluginPath] = LoadPluginModule(pluginName);
+  LOG_DEBUG("[LOAD TRACE] After LoadPluginModule: {0}", pluginName);
 	if (!hModule)
 	{
 		// szPluginLoadFailure is set in LoadPluginModule
@@ -543,7 +552,9 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	using InitPluginHandleFunc = void(*)(mq::MQPlugin*, mq::MQPluginHandle);
 
 	auto initPluginFunc = reinterpret_cast<InitPluginHandleFunc>(GetProcAddress(pPlugin->hModule, "InitPluginHandle"));
+  LOG_DEBUG("[LOAD TRACE] Before InitPluginHandle: {0}", pluginName);
 	initPluginFunc(rec.instance, rec.handle);
+  LOG_DEBUG("[LOAD TRACE] After InitPluginHandle: {0}", pluginName);
 
 	pPlugin->Initialize        = (fMQInitializePlugin)GetProcAddress(pPlugin->hModule, "InitializePlugin");
 	pPlugin->Shutdown          = (fMQShutdownPlugin)GetProcAddress(pPlugin->hModule, "ShutdownPlugin");
@@ -577,9 +588,11 @@ int LoadPlugin(std::string_view pluginName, bool save)
 	else
 		pPlugin->fpVersion = 1.0;
 
+  LOG_DEBUG("[LOAD TRACE] Before Initialize section: {0}", pluginName);
 	// initialize plugin
 	if (pPlugin->Initialize)
 		pPlugin->Initialize();
+  LOG_DEBUG("[LOAD TRACE] After InitializePlugin: {0}", pluginName);
 
 	// init gamestate
 	if (pPlugin->SetGameState)
@@ -1565,14 +1578,22 @@ void InitializePlugins()
 	DebugSpew("Initializing plugins");
 	ScopedModuleTracker moduleTracker;
 
-	const std::vector<std::string> plugins = GetPrivateProfileKeys<MAX_STRING * 2>("Plugins", mq::internal_paths::MQini);
-	for (const std::string& pluginName : plugins)
-	{
-		if (GetPrivateProfileBool("Plugins", pluginName, false, mq::internal_paths::MQini))
-		{
-			LoadPlugin(pluginName.c_str(), false);
-		}
-	}
+  const std::vector<std::string> plugins = GetPrivateProfileKeys<MAX_STRING * 2>("Plugins", mq::internal_paths::MQini);
+  for (const std::string& pluginName : plugins)
+  {
+    LOG_DEBUG("[PLUGIN TRACE] Checking plugin: {0}", pluginName);
+
+    if (GetPrivateProfileBool("Plugins", pluginName, false, mq::internal_paths::MQini))
+    {
+      LOG_DEBUG("[PLUGIN TRACE] Before LoadPlugin: {0}", pluginName);
+      LoadPlugin(pluginName.c_str(), false);
+      LOG_DEBUG("[PLUGIN TRACE] After LoadPlugin: {0}", pluginName);
+    }
+    else
+    {
+      LOG_DEBUG("[PLUGIN TRACE] Disabled plugin: {0}", pluginName);
+    }
+  }
 }
 
 void ShutdownPlugins()
